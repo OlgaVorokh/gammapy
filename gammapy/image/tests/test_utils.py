@@ -9,13 +9,11 @@ from astropy.units import Quantity
 from ...utils.testing import requires_dependency, requires_data
 from ...datasets import FermiGalacticCenter
 from ...data import DataStore
-from ...utils.energy import EnergyBounds
 from ...cube import SkyCube
 from ...image import (
     binary_disk,
     binary_ring,
     make_header,
-    images_to_cube,
     block_reduce_hdu,
     wcs_histogram2d,
     lon_lat_rectangle_mask,

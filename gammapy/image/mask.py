@@ -5,6 +5,7 @@ from astropy.coordinates import Latitude, Longitude, Angle
 from astropy.utils import lazyproperty
 from ..image import lon_lat_circle_mask
 from .core import SkyImage
+from .utils import binary_disk
 
 __all__ = [
     'SkyMask',
@@ -72,6 +73,26 @@ class SkyMask(SkyImage):
         kwargs.setdefault('origin', 'lower')
 
         super(SkyMask, self).plot(ax, fig, **kwargs)
+
+    def dilate(self, input, radius):
+        """
+        Dilate with disk of a given radius.
+
+        Parameters
+        ----------
+        input : `~numpy.ndarray`
+            Input array
+        radius : float
+            Dilation radius (pix)
+
+        Returns
+        -------
+        binary_dilation : `~numpy.ndarray` of bools
+            Dilation of the input array by a disk of the given radius.
+        """
+        from scipy.ndimage import binary_dilation
+        structure = binary_disk(radius)
+        return binary_dilation(input, structure)
 
     @lazyproperty
     def distance_image(self):
