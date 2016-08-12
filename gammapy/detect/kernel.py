@@ -16,14 +16,27 @@ __all__ = [
 class KernelBackgroundEstimatorData(object):
     """TODO: implement a more general images container class
     that can be re-used in other places as well.
+
+    Parameters
+    ----------
+    counts : ???
+        ???
+    background : ???
+        ???
+    mask : ???
+        ???
+    header : ???
+        ???
     """
 
     def __init__(self, counts, background=None, mask=None, header=None):
         self.counts = counts
 
-        if header:
-            self.header = header
+        # TODO: not normal
+        #if header:
+        self.header = header
 
+        # TODO: like in the ipython
         if background is not None:
             self.background = background
 
@@ -33,11 +46,11 @@ class KernelBackgroundEstimatorData(object):
             self.mask = np.asarray(mask, dtype=bool)
 
     def initial_background(self, kernel):
-        """Computes initial background estimation
+        """
+        Computes initial background estimation
         """
         from scipy.ndimage import convolve
         self.background = convolve(self.counts, kernel)
-        return self
 
     def compute_correlated_maps(self, kernel):
         """Compute significance image for a given kernel.
@@ -49,11 +62,11 @@ class KernelBackgroundEstimatorData(object):
         self.background_corr = convolve(self.background, kernel)
         self.significance = np.nan_to_num(significance(self.counts_corr,
                                                        self.background_corr))
-        return self
 
 
 class KernelBackgroundEstimator(object):
-    """Estimate background using a source and background kernel.
+    """
+    Estimate background using a source and background kernel.
 
     Output is a background image and exclusion mask, which can be used
     to other images, e.g. an excess, flux or significance image.
@@ -70,14 +83,13 @@ class KernelBackgroundEstimator(object):
         Significance threshold above which regions are excluded.
     mask_dilation_radius : float
         Amount by which mask is dilated with each iteration.
-    delete_intermediate_results : bool
+    delete_intermediate_results : bool, optional (default True)   TODO: RENAME
         Specify whether results of intermediate iterations should be deleted.
-        (Otherwise, these are held in memory). Default True.
-    save_intermediate_results : bool
+        (Otherwise, these are held in memory).
+    save_intermediate_results : bool, optional (default False)
         Specify whether to save intermediate results as FITS files to disk.
-        Default False.
-    base_dir : str (optional)
-        Base of filenames if save_intermediate_results = True. Default 'temp'.
+    base_dir : str, optional (default 'temp')
+        Base of filenames if save_intermediate_results = True.
     """
 
     def __init__(self, images, source_kernel, background_kernel,
@@ -90,7 +102,7 @@ class KernelBackgroundEstimator(object):
 
         images.initial_background(background_kernel)
         # self._data[i] is a GammaImages object representing iteration number `i`.
-        self._data = list()
+        self._data = list()  # TODO : rename to 'history'
         self._data.append(images)
 
         self.header = images.header
@@ -104,20 +116,22 @@ class KernelBackgroundEstimator(object):
         self._data[-1].compute_correlated_maps(self.source_kernel)
 
     def run(self, base_dir=None, max_iterations=10):
-        """Run iterations until mask does not change (stopping condition).
+        """
+        Run iterations until mask does not change (stopping condition).
 
         Parameters
         ----------
-        base_dir : str
+        TODO : move to __init__
+        base_dir : string, optional (default 'temp' ??? None)
             Base string for filenames if iterations are saved to disk.
-            Default None.
-        max_iterations : int
+        max_iterations : int, optional (default 10)
             Maximum number of iterations after which the algorithm is
             terminated, if the termination condition (no change of mask between
             iterations) is not already satisfied.
 
         Returns
         -------
+        TODO : maybe return dict?
         mask : array-like
             Boolean array for the final mask after iterations are ended.
         background : array-like
@@ -128,12 +142,14 @@ class KernelBackgroundEstimator(object):
         if self.save_intermediate_results:
             self.save_files(base_dir, index=0)
 
+        # TODO : rename ii to n_iter
         for ii in np.arange(max_iterations):
             self.run_iteration()
 
             if self.save_intermediate_results:
                 self.save_files(base_dir, index=ii)
 
+            # TODO BUG
             # Dilate old mask to compare with new mask
             old_mask = self._data[0].mask
             new_mask = self._data[-1].mask
@@ -160,8 +176,7 @@ class KernelBackgroundEstimator(object):
         ----------
         update_mask : bool
             Specify whether to update the exclusion mask stored in the input
-            data object with the exclusion mask
-            newly calculated in this method.
+            data object with the exclusion mask newly calculated in this method.
         """
         from scipy.ndimage import convolve
         # Start with images from the last iteration. If not, makes one.
